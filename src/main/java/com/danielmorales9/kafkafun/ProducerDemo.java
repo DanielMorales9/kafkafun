@@ -6,11 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 
 public class ProducerDemo {
 
-    public static final String BOOTSTRAP_SERVER = "0.0.0.0:9092";
+    public static final String BOOTSTRAP_SERVER = "127.0.0.1:9092";
     public static final String MY_TOPIC = "first";
 
     public static void main(String[] args) {
@@ -30,7 +29,10 @@ public class ProducerDemo {
 
             // create a producer
             String message = String.format("hello world %d", i);
-            ProducerRecord<String, String> record = new ProducerRecord<String, String>(MY_TOPIC, message);
+            String key = String.format("id_%d", i);
+            ProducerRecord<String, String> record = new ProducerRecord<String, String>(MY_TOPIC, key, message);
+
+            logger.info("Key: " + key);
 
             // send data
             producer.send(record, new Callback() {
