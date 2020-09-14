@@ -1,5 +1,7 @@
-package com.kafkafun;
+package com.kafkafun.simple;
 
+import com.kafkafun.Constants;
+import com.kafkafun.KafkaProperties;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;

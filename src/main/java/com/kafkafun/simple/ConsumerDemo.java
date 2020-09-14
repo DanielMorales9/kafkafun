@@ -1,10 +1,11 @@
-package com.kafkafun;
+package com.kafkafun.simple;
 
+import com.kafkafun.Constants;
+import com.kafkafun.KafkaProperties;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
-import org.apache.kafka.common.metrics.stats.Count;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
