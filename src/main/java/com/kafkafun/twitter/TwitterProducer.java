@@ -31,8 +31,11 @@ public class TwitterProducer {
     private final String token = "";
     private final String secret = "";
 
-    ArrayList<String> terms = Lists.newArrayList("bitcoin");
+    private KafkaProducer<String, String> producer;
+    private ArrayList<String> terms = Lists.newArrayList("bitcoin");
+
     Logger logger = LoggerFactory.getLogger(TwitterProducer.class.getName());
+    private Client client;
 
     public static void main(String[] args) {
         new TwitterProducer().run();
@@ -44,7 +47,7 @@ public class TwitterProducer {
 
         BlockingQueue<String> msgQueue = new LinkedBlockingQueue<>(1000);
 
-        Client client = createTwitterClient(msgQueue);
+        client = createTwitterClient(msgQueue);
 
         // Attempts to establish a connection.
         client.connect();
@@ -53,8 +56,9 @@ public class TwitterProducer {
         Properties properties = KafkaProperties.getProducerProperties();
 
         // create the produce
-        final KafkaProducer<String, String> producer = new KafkaProducer<String, String>(properties, new StringSerializer(), new StringSerializer());
+        producer = new KafkaProducer<>(properties, new StringSerializer(), new StringSerializer());
 
+        addShutdownHook();
 
         while (!client.isDone()) {
             String msg = null;
@@ -67,14 +71,29 @@ public class TwitterProducer {
 
             if (msg != null) {
                 logger.info(msg);
-                producer.send(new ProducerRecord<>(TOPIC, null, msg), (metadata, e) -> {
-                    if (e != null) {
-                        logger.error("Something went wrong", e);
-                    }
-                });
+                sendTweetToKafka(msg);
             }
         }
         logger.info("End of Application");
+    }
+
+    private void sendTweetToKafka(String msg) {
+        producer.send(new ProducerRecord<>(TOPIC, null, msg), (metadata, e) -> {
+            if (e != null) {
+                logger.error("Something went wrong", e);
+            }
+        });
+    }
+
+    private void addShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.info("Stopping application...");
+            logger.info("shutting down client from twitter...");
+            client.stop();
+            logger.info("closing producer...");
+            producer.close();
+            logger.info("done!");
+        }));
     }
 
 
