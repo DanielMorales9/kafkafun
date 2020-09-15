@@ -53,7 +53,7 @@ public class TwitterProducer {
         client.connect();
 
         // create Producer properties
-        Properties properties = KafkaProperties.getProducerProperties();
+        Properties properties = KafkaProperties.getProducerProperties(false);
 
         // create the produce
         producer = new KafkaProducer<>(properties, new StringSerializer(), new StringSerializer());

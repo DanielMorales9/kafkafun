@@ -16,17 +16,17 @@ public class ProducerDemo {
         final Logger logger = LoggerFactory.getLogger(ProducerDemo.class);
 
         // create Producer properties
-        Properties properties = KafkaProperties.getProducerProperties();
+        Properties properties = KafkaProperties.getProducerProperties(true);
 
         // create the produce
-        final KafkaProducer<String, String> producer = new KafkaProducer<String, String>(properties, new StringSerializer(), new StringSerializer());
+        final KafkaProducer<String, String> producer = new KafkaProducer<>(properties, new StringSerializer(), new StringSerializer());
 
         for (int i = 0; i < 10; i++) {
 
             // create a producer
             String message = String.format("hello world %d", i);
             String key = String.format("id_%d", i);
-            ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC, key, message);
+            ProducerRecord<String, String> record = new ProducerRecord<>(Constants.TOPIC, key, message);
 
             logger.info("Key: " + key);
 
