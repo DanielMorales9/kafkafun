@@ -1,8 +1,10 @@
 package com.kafkafun.twitter;
 
 import com.google.common.collect.Lists;
+
 import com.kafkafun.util.ApplicationProperties;
 import com.kafkafun.util.KafkaProducerProperties;
+
 import com.twitter.hbc.ClientBuilder;
 import com.twitter.hbc.core.Client;
 import com.twitter.hbc.core.Constants;

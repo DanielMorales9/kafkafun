@@ -2,6 +2,7 @@ package com.kafkafun.simple;
 
 import com.kafkafun.util.ApplicationProperties;
 import com.kafkafun.util.KafkaConsumerProperties;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
