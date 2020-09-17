@@ -1,7 +1,7 @@
 package com.kafkafun.simple;
 
-import com.kafkafun.Constants;
-import com.kafkafun.KafkaProperties;
+import com.kafkafun.util.ApplicationProperties;
+import com.kafkafun.util.KafkaConsumerProperties;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -17,7 +17,6 @@ import java.util.concurrent.CountDownLatch;
 public class ConsumerDemo {
 
     Logger logger = LoggerFactory.getLogger(ConsumerDemo.class.getName());
-    public static final String GROUP_ID = "my_application";
 
     public static void main(String[] args) {
 
@@ -27,7 +26,7 @@ public class ConsumerDemo {
 
     public void run() {
 
-        Properties properties = KafkaProperties.getConsumerProperties(GROUP_ID);
+        Properties properties = new KafkaConsumerProperties().getProperties();
         CountDownLatch latch = new CountDownLatch(1);
 
         ConsumerThread target = new ConsumerThread(latch, properties);
@@ -53,11 +52,11 @@ public class ConsumerDemo {
         }
     }
 
-    public class ConsumerThread implements Runnable {
+    public static class ConsumerThread implements Runnable {
 
         Logger logger = LoggerFactory.getLogger(ConsumerThread.class.getName());
-        private KafkaConsumer<String, String> consumer;
-        private CountDownLatch latch;
+        private final KafkaConsumer<String, String> consumer;
+        private final CountDownLatch latch;
 
 
         public ConsumerThread(CountDownLatch latch, Properties properties) {
@@ -67,7 +66,9 @@ public class ConsumerDemo {
 
         @Override
         public void run() {
-            consumer.subscribe(Collections.singletonList(Constants.TOPIC));
+            Properties appProperties = new ApplicationProperties().getProperties();
+
+            consumer.subscribe(Collections.singletonList(appProperties.getProperty("topic")));
 
             try {
                 while (true) {

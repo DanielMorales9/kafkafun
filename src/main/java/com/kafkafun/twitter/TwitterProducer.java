@@ -1,7 +1,8 @@
 package com.kafkafun.twitter;
 
 import com.google.common.collect.Lists;
-import com.kafkafun.KafkaProperties;
+import com.kafkafun.util.ApplicationProperties;
+import com.kafkafun.util.KafkaProducerProperties;
 import com.twitter.hbc.ClientBuilder;
 import com.twitter.hbc.core.Client;
 import com.twitter.hbc.core.Constants;
@@ -25,17 +26,25 @@ import java.util.concurrent.TimeUnit;
 
 public class TwitterProducer {
 
-    public static final String TOPIC = "twitter_tweets";
-    private final String consumerKey = "";
-    private final String consumerSecret = "";
-    private final String token = "";
-    private final String secret = "";
+    private String topic;
+    private String consumerKey;
+    private String consumerSecret;
+    private String token;
+    private String secret;
 
     private KafkaProducer<String, String> producer;
-    private ArrayList<String> terms = Lists.newArrayList("bitcoin");
-
-    Logger logger = LoggerFactory.getLogger(TwitterProducer.class.getName());
+    private final ArrayList<String> terms = Lists.newArrayList("bitcoin");
     private Client client;
+    Logger logger = LoggerFactory.getLogger(TwitterProducer.class.getName());
+
+    public TwitterProducer () {
+        Properties prop = new ApplicationProperties().getProperties();
+        this.topic = prop.getProperty("topic");
+        this.consumerKey = prop.getProperty("consumerKey", "");
+        this.consumerSecret = prop.getProperty("consumerSecret", "");
+        this.token = prop.getProperty("token", "");
+        this.secret = prop.getProperty("secret", "");
+    }
 
     public static void main(String[] args) {
         new TwitterProducer().run();
@@ -53,7 +62,7 @@ public class TwitterProducer {
         client.connect();
 
         // create Producer properties
-        Properties properties = KafkaProperties.getProducerProperties(false);
+        Properties properties = new KafkaProducerProperties().getProperties();
 
         // create the produce
         producer = new KafkaProducer<>(properties, new StringSerializer(), new StringSerializer());
@@ -78,7 +87,7 @@ public class TwitterProducer {
     }
 
     private void sendTweetToKafka(String msg) {
-        producer.send(new ProducerRecord<>(TOPIC, null, msg), (metadata, e) -> {
+        producer.send(new ProducerRecord<>(topic, null, msg), (metadata, e) -> {
             if (e != null) {
                 logger.error("Something went wrong", e);
             }
@@ -115,5 +124,4 @@ public class TwitterProducer {
 
         return builder.build();
     }
-
 }

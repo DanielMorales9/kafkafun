@@ -1,8 +1,9 @@
 package com.kafkafun.simple;
 
-import com.kafkafun.Constants;
-import com.kafkafun.KafkaProperties;
-import org.apache.kafka.clients.producer.*;
+import com.kafkafun.util.ApplicationProperties;
+import com.kafkafun.util.KafkaProducerProperties;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,9 @@ public class ProducerDemo {
         final Logger logger = LoggerFactory.getLogger(ProducerDemo.class);
 
         // create Producer properties
-        Properties properties = KafkaProperties.getProducerProperties(true);
+        Properties properties = new KafkaProducerProperties().getProperties();
+
+        Properties appProperties = new ApplicationProperties().getProperties();
 
         // create the produce
         final KafkaProducer<String, String> producer = new KafkaProducer<>(properties, new StringSerializer(), new StringSerializer());
@@ -26,7 +29,7 @@ public class ProducerDemo {
             // create a producer
             String message = String.format("hello world %d", i);
             String key = String.format("id_%d", i);
-            ProducerRecord<String, String> record = new ProducerRecord<>(Constants.TOPIC, key, message);
+            ProducerRecord<String, String> record = new ProducerRecord<>(appProperties.getProperty("topic"), key, message);
 
             logger.info("Key: " + key);
 
