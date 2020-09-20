@@ -19,6 +19,7 @@ public class KafkaConsumerProperties extends AProperties {
     public Properties getDefaultProperties() {
         Properties properties = new Properties();
 
+        properties.setProperty("topic", Constants.TOPIC);
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, Constants.BOOTSTRAP_SERVER);
         properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, Constants.AUTO_OFFSET_RESET_CONFIG_EARLIEST);
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, Constants.CONSUMER_GROUP_ID);

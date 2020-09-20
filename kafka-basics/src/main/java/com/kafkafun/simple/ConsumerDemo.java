@@ -1,6 +1,5 @@
 package com.kafkafun.simple;
 
-import com.kafkafun.util.ApplicationProperties;
 import com.kafkafun.util.KafkaConsumerProperties;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -56,20 +55,20 @@ public class ConsumerDemo {
     public static class ConsumerThread implements Runnable {
 
         Logger logger = LoggerFactory.getLogger(ConsumerThread.class.getName());
+        private final Properties properties;
         private final KafkaConsumer<String, String> consumer;
         private final CountDownLatch latch;
 
 
         public ConsumerThread(CountDownLatch latch, Properties properties) {
             this.latch = latch;
-            this.consumer = new KafkaConsumer<>(properties);
+            this.properties = properties;
+            this.consumer = new KafkaConsumer<>(this.properties);
         }
 
         @Override
         public void run() {
-            Properties appProperties = new ApplicationProperties().getProperties();
-
-            consumer.subscribe(Collections.singletonList(appProperties.getProperty("topic")));
+            consumer.subscribe(Collections.singletonList(properties.getProperty("topic")));
 
             try {
                 while (true) {

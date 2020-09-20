@@ -14,11 +14,7 @@ public class ApplicationProperties extends AProperties {
 
     @Override
     public Properties getDefaultProperties() {
-        Properties properties = new Properties();
-
-        properties.setProperty("topic", Constants.TOPIC);
-
-        return properties;
+        return new Properties();
     }
 
 }
