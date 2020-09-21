@@ -2,6 +2,7 @@ package com.kafkafun.util;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,7 +10,7 @@ import java.util.stream.Collectors;
 
 public abstract class AProperties {
 
-    private String propertyFileName;
+    private final String propertyFileName;
 
     public AProperties(String propertyFileName) {
         this.propertyFileName = propertyFileName;
@@ -19,7 +20,10 @@ public abstract class AProperties {
         Properties prop;
 
         try {
-            InputStream input = new FileInputStream(String.format("src/main/resources/%s.properties", propertyFileName));
+            ClassLoader classLoader = getClass().getClassLoader();
+            String propertiesName = String.format("%s.properties", propertyFileName);
+            String file = Objects.requireNonNull(classLoader.getResource(propertiesName)).getFile();
+            InputStream input = new FileInputStream(file);
             prop = new Properties();
 
             // load a properties file
