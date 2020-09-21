@@ -28,11 +28,11 @@ import java.util.concurrent.TimeUnit;
 
 public class TwitterProducer {
 
-    private String topic;
-    private String consumerKey;
-    private String consumerSecret;
-    private String token;
-    private String secret;
+    private final String topic;
+    private final String consumerKey;
+    private final String consumerSecret;
+    private final String token;
+    private final String secret;
 
     private KafkaProducer<String, String> producer;
     private final ArrayList<String> terms = Lists.newArrayList("bitcoin");

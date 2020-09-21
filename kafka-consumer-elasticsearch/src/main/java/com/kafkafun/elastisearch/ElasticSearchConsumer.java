@@ -40,6 +40,7 @@ public class ElasticSearchConsumer {
     }
 
     public static void main(String[] args) {
-
+        ElasticSearchConsumer consumer = new ElasticSearchConsumer();
+        RestHighLevelClient client = consumer.createClient();
     }
 }
