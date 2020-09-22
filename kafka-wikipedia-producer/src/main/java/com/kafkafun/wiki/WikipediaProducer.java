@@ -2,6 +2,7 @@ package com.kafkafun.wiki;
 
 import com.google.gson.JsonElement;
 import com.kafkafun.util.ApplicationProperties;
+import com.kafkafun.util.KafkaProducerProperties;
 import com.pubnub.api.PNConfiguration;
 import com.pubnub.api.PubNub;
 import com.pubnub.api.callbacks.SubscribeCallback;
@@ -14,6 +15,11 @@ import com.pubnub.api.models.consumer.pubsub.PNPresenceEventResult;
 import com.pubnub.api.models.consumer.pubsub.PNSignalResult;
 import com.pubnub.api.models.consumer.pubsub.files.PNFileEventResult;
 import com.pubnub.api.models.consumer.pubsub.message_actions.PNMessageActionResult;
+import com.sun.istack.internal.NotNull;
+import com.sun.xml.internal.ws.api.message.ExceptionHasMessage;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,17 +29,41 @@ import java.util.UUID;
 
 public class WikipediaProducer {
 
-    private final String channelName;
-    private final String subscribeKey;
-    private final String uuid;
-
     Logger logger = LoggerFactory.getLogger(WikipediaProducer.class.getName());
+    private final String channelName;
+    private final PubNub pubnub;
+
+
+    private final String topic;
+
+    private final KafkaProducer<String, String> producer;
 
     public WikipediaProducer() {
         Properties properties = new ApplicationProperties().getProperties();
         channelName = properties.getProperty("channel");
-        subscribeKey = properties.getProperty("subscribeKey");
-        uuid = UUID.randomUUID().toString();
+        topic = properties.getProperty("topic");
+
+        String subscribeKey = properties.getProperty("subscribeKey");
+        String uuid = UUID.randomUUID().toString();
+
+        // create PubNubClient
+        pubnub = getPubNub(subscribeKey, uuid);
+
+        // create Producer properties
+        Properties kafkaProperties = new KafkaProducerProperties().getProperties();
+
+        // create the produce
+        producer = new KafkaProducer<>(kafkaProperties, new StringSerializer(), new StringSerializer());
+    }
+
+    private PubNub getPubNub(String subscribeKey, String uuid) {
+        System.out.println(subscribeKey);
+
+        PNConfiguration pnConfiguration = new PNConfiguration();
+        pnConfiguration.setSubscribeKey(subscribeKey);
+        pnConfiguration.setUuid(uuid);
+
+        return new PubNub(pnConfiguration);
     }
 
     public static void main(String[] args) {
@@ -41,12 +71,7 @@ public class WikipediaProducer {
     }
 
     public void run() {
-
-        PNConfiguration pnConfiguration = new PNConfiguration();
-        pnConfiguration.setSubscribeKey(subscribeKey);
-        pnConfiguration.setUuid(uuid);
-
-        PubNub pubnub = new PubNub(pnConfiguration);
+        addShutdownHook();
 
         pubnub.addListener(new SubscribeCallback() {
 
@@ -58,7 +83,9 @@ public class WikipediaProducer {
             @Override
             public void message(PubNub pubnub, PNMessageResult message) {
                 JsonElement receivedMessageObject = message.getMessage();
-                logger.info("Received message: " + receivedMessageObject.toString());
+                String msg = receivedMessageObject.toString();
+                logger.info("Received message: " + msg);
+                sendTweetToKafka(msg);
             }
 
             @Override
@@ -98,11 +125,28 @@ public class WikipediaProducer {
 
         });
 
-        // optionally print the message
-        // System.out.println("Message to send: " + messageJsonObject.toString());
-
         pubnub.subscribe()
                 .channels(Collections.singletonList(channelName))
                 .execute();
+    }
+
+    private void sendTweetToKafka(String msg) {
+        producer.send(new ProducerRecord<>(this.topic, null, msg), (metadata, e) -> {
+            if (e != null) {
+                logger.error("Something went wrong", e);
+            }
+        });
+    }
+
+    private void addShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
+    }
+
+    private void close() {
+        logger.info("Unsubscribing...");
+        pubnub.unsubscribe();
+        logger.info("Stopping producer...");
+        producer.close();
+        logger.info("done!");
     }
 }
