@@ -10,8 +10,9 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -67,30 +68,38 @@ public class ElasticSearchConsumer {
         consumer.subscribe(Collections.singleton(elasticSearch.topic));
 
         while (true) {
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(3000));
 
-            for (ConsumerRecord<String, String> record: records) {
+            int recordCount = records.count();
 
-                String id = record.topic() + "_" + record.partition() + "_" + record.offset();
+            if (recordCount > 0) {
 
-                IndexRequest indexRequest = new IndexRequest(elasticSearch.index)
-                        .id(id)
-                        .source(record.value(), XContentType.JSON);
+                logger.info("Received " + recordCount + " records");
 
-                IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
+                BulkRequest bulkRequest = new BulkRequest();
 
-                logger.info(indexResponse.status().toString());
-                logger.info(indexResponse.getId());
+                for (ConsumerRecord<String, String> record: records) {
 
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    String id = record.topic() + "_" + record.partition() + "_" + record.offset();
+
+                    IndexRequest indexRequest = new IndexRequest(elasticSearch.index)
+                            .id(id)
+                            .source(record.value(), XContentType.JSON);
+
+                    bulkRequest.add(indexRequest);
                 }
+
+                BulkResponse bulkItemResponses = client.bulk(bulkRequest, RequestOptions.DEFAULT);
+
+                logger.info("BULK Response Status: " + bulkItemResponses.status().toString());
+
+                logger.info("Committing offsets...");
+                consumer.commitSync();
+                logger.info("Offsets have been committed");
+
             }
 
         }
-
         // client.close();
     }
 
