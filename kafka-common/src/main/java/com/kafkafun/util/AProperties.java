@@ -31,7 +31,7 @@ public abstract class AProperties {
 
             return prop;
 
-        } catch (IOException ex) {
+        } catch (IOException | NullPointerException ex) {
             ex.printStackTrace();
         }
 

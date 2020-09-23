@@ -33,7 +33,6 @@ public class WikipediaProducer {
     private final String channelName;
     private final PubNub pubnub;
 
-
     private final String topic;
 
     private final KafkaProducer<String, String> producer;
@@ -57,8 +56,6 @@ public class WikipediaProducer {
     }
 
     private PubNub getPubNub(String subscribeKey, String uuid) {
-        System.out.println(subscribeKey);
-
         PNConfiguration pnConfiguration = new PNConfiguration();
         pnConfiguration.setSubscribeKey(subscribeKey);
         pnConfiguration.setUuid(uuid);
