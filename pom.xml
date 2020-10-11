@@ -32,7 +32,6 @@
     <modules>
         <module>kafka-common</module>
         <module>kafka-basics</module>
-        <module>kafka-twitter-producer</module>
         <module>kafka-consumer-elasticsearch</module>
         <module>kafka-wikipedia-producer</module>
         <module>kakfa-streams-filter-wikipedia</module>
